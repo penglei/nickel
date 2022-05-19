@@ -107,15 +107,19 @@ are natural write and that we expect to be accepted by the typechecker?
 
 ### Upcasts
 
-The dynamic type acts statically a top type (with caveats , though[^2]), like
-`Any` in some languages (TypeScript, Python with mypy). Although casts from the
-dynamic type are unsafe in general, cast _to_ the dynamic type are safe. But the
-typechecker currently isn't smart enough and requires explicit casts:
+The dynamic type acts statically as a top type (with caveats though[^2]), like
+`Any` or `Object` in some languages. Although casts from the dynamic type are
+unsafe in general, cast _to_ the dynamic type are safe. But the typechecker
+currently isn't smart enough and requires explicit casts:
 
 ```nickel
+# rejected because some_data has type `{script: Str, vars: Array Str}`, which is
+# not compatible with `Dyn`
 {
   foo : Array Str =
     let some_data = {script = "echo ${hello}", vars = ["hello"] } in
     [builtin.serialize `Json some_data, builtin.serialize `Yaml some_data]
 }
 ```
+
+
