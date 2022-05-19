@@ -184,6 +184,7 @@ let typecheck = [
   string.length : Str -> Num,
   (string.length "Ok") : Num,
   (string.length "Ok" == 2) : Bool,
+
   # partial application
   (string.split ".") : Str -> Array Str,
   (array.length [] == 0) : Bool,
@@ -192,7 +193,13 @@ let typecheck = [
   # wildcards
   ("hello" : _) : Str,
   ((fun x => x + 1) : _ -> Num) : Num -> Num,
-  ({"foo" = 1} : {foo : _}) : {foo: Num}
+  ({"foo" = 1} : {foo : _}) : {foo: Num},
+
+  # Regression test for #700 (https://github.com/tweag/nickel/issues/700)
+  # The (| ExportFormat) cast is only temporary, and can be removed once #671
+  # (https://github.com/tweag/nickel/issues/671) is closed
+  builtin.serialize (`Json | builtin.ExportFormat) ({bar = 0, foo = "a"} | Dyn) : Str,
+  builtin.hash ({bar = 0, foo = "a"} | Dyn) : Str,
 ] in
 
 true
