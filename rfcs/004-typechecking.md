@@ -91,7 +91,7 @@ annotation which indicates what type the user expects the expression to be:
 
 ### Summary
 
-The high-level picture of typing in Nickel the following dimensions:
+The important dimensions of typing in Nickel are:
 
 - Statically typed code is checked using a standard ML-like/SystemF system with
   polymorphism and row polymorphism
@@ -105,21 +105,85 @@ The high-level picture of typing in Nickel the following dimensions:
 This sections attempts to motivate this RFC practically: what are programs that
 are natural write and that we expect to be accepted by the typechecker?
 
-### Upcasts
+### Dynamic
 
-The dynamic type acts statically as a top type (with caveats though[^2]), like
+The dynamic type acts as a top type statically (with caveats though[^2]), like
 `Any` or `Object` in some languages. Although casts from the dynamic type are
 unsafe in general, cast _to_ the dynamic type are safe. But the typechecker
-currently isn't smart enough and requires explicit casts:
+currently isn't smart enough and requires explicit annotations:
 
 ```nickel
 # rejected because some_data has type `{script: Str, vars: Array Str}`, which is
 # not compatible with `Dyn`
 {
-  foo : Array Str =
-    let some_data = {script = "echo ${hello}", vars = ["hello"] } in
-    [builtin.serialize `Json some_data, builtin.serialize `Yaml some_data]
+  serialized : Array Str =
+    let data = {script = "echo ${hello}", vars = ["hello"] } in
+    let other_data = ["one", "two", "three"] in
+    [
+      builtin.serialize `Json data,
+      builtin.serialize `Yaml other_data
+    ]
 }
 ```
 
+To make it work, the user needs to explicitly add missing `Dyn`:
 
+```nickel
+{
+  serialized : Arry Str =
+    let data = {script = "echo ${hello}", vars = ["hello"] } in
+    let other_data = ["one", "two", "three"] in
+    [
+      builtin.serialize `Json (data | Dyn),
+      builtin.serialize `Yaml (other_data | Dyn)
+    ]
+}
+```
+
+### Dyn versus forall
+
+### Dictionaries
+
+In essence, an upcast can be seen as _forgetting_ part of the type information.
+The most drastic lost of information is casting to `Dyn`: we pretty much forget
+the type of the original value.
+
+There are other useful loss of information. One concerns dictionary types `{_:
+T}`. In practice, records serve several purposes in Nickel:
+
+- A key-value mapping with a statically known structure. This is usually
+  the case of configurations: one knows in advance what key will appear in the
+  final value and for each key, the type of values allowed.
+- A key-value mapping with a dynamic structure. Keys are added
+  dynamically and depend on runtime values.
+
+The first case is best modeled using record types. For example:
+
+```nickel
+{
+  name = "virtal",
+  version = "1.0.1",
+  enabled = true,
+} : {
+  name : Str,
+  version : Str,
+  enabled : Bool,
+}
+```
+
+But for records which fields are not statically known, record types are too
+rigid. We use dictionary types instead:
+
+```nickel
+let data : {_: Num} = {} in
+data
+|> record.insert "one" 1
+|> record.insert "two" 2
+|> record.insert "three" 3
+```
+
+## Proposal
+
+type system
+
+## Alternatives
