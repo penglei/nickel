@@ -140,6 +140,7 @@ To make it work, the user needs to explicitly add missing `Dyn`:
 }
 ```
 
+
 ### Dyn versus forall
 
 ### Dictionaries
@@ -175,15 +176,71 @@ But for records which fields are not statically known, record types are too
 rigid. We use dictionary types instead:
 
 ```nickel
-let data : {_: Num} = {} in
+(let data = {ten = 10} in
 data
 |> record.insert "one" 1
 |> record.insert "two" 2
-|> record.insert "three" 3
+|> record.insert "three" 3) : {_: Num}
 ```
+
+Unfortunately, this example doesn't work as it is:
+
+```text
+error: incompatible types
+  ┌─ repl-input-6:2:1
+  │
+2 │ data
+  │ ^^^^ this expression
+  │
+  = The type of the expression was expected to be `{_: Num}`
+  = The type of the expression was inferred to be `{}`
+  = These types are not compatible
+```
+
+Record literals are always inferred to have a precise record type (here,
+`{ten : Num}`) which is thus different from the expected dictionary type. A
+special casing in the typechecker can still make this example work with an
+additional annotation:
+
+```nickel
+(let data : {_ : Num} = {ten = 10} in
+data
+|> record.insert "one" 1
+|> record.insert "two" 2
+|> record.insert "three" 3) : {_: Num}
+```
+
+Alas, this special case is fragile: it only works if we annotate directly the
+record literal. If we use a variable as a proxy, inference is broken and there
+is no way to make the following example typecheck by fiddling with type
+annotations:
+
+```nickel
+nickel> (let x = {ten = 10} in
+let data : {_ : Num} = x in
+data
+|> record.insert "one" 1
+|> record.insert "two" 2
+|> record.insert "three" 3) : {_: Num}
+
+error: incompatible types
+  ┌─ repl-input-8:2:24
+  │
+2 │ let data : {_ : Num} = x in
+  │                        ^ this expression
+  │
+  = The type of the expression was expected to be `{_: Num}`
+  = The type of the expression was inferred to be `{ten: Num}`
+  = These types are not compatible
+```
+
 
 ## Proposal
 
-type system
+- subtyping with `T <: Dyn`, `{ l1 : T, .., ln : T} <: {_: T}` constraints
+- start without impredicative polymorphism nor deep instantiation, and see later
 
 ## Alternatives
+
+- drop subtyping, and have either QuickLook, deep instantiation, or none (to
+    start)
