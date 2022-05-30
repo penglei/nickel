@@ -140,8 +140,32 @@ To make it work, the user needs to explicitly add missing `Dyn`:
 }
 ```
 
-
 ### Dyn versus forall
+
+Why do we need `Dyn` inside typed code at all? After all, we can already express
+the we operate over generic values using polymorphism, as in the definition of
+`head`:
+
+```nickel
+head : forall a. Array a -> a
+```
+
+However, well-typed polymorphic functions enjoy
+[_parametric_](https://en.wikipedia.org/wiki/Parametricity). Concretely, they
+can't inspect their polymorphic arguments. In consequence, the contract system
+also enforces this property dynamically. For example, the follwing function is
+rejected by the contract system:
+
+```nickel
+let fake_id
+  | forall a. a -> a
+  = fun x => if builtin.is_num x then x + 1 else x in
+fake_id 10
+```
+
+**TODO**: actually it is not, the behavior is more subtle, but that's an issue
+with the current implementation.
+
 
 ### Dictionaries
 
@@ -233,7 +257,6 @@ error: incompatible types
   = The type of the expression was inferred to be `{ten: Num}`
   = These types are not compatible
 ```
-
 
 ## Proposal
 
