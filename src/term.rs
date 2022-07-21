@@ -225,6 +225,12 @@ impl ArrayAttrs {
         self
     }
 
+    /// Drop the pending contracts.
+    pub fn contracts_cleared(mut self) -> Self {
+        self.pending_contracts.clear();
+        self
+    }
+
     /// Extend contracts from an iterator of `PendingContract`.
     pub fn with_contracts<I>(mut self, iter: I) -> Self
     where
@@ -885,17 +891,34 @@ pub enum UnaryOp {
     /// Transform a string to an enum.
     EnumFromStr(),
     /// Test if a regex matches a string.
-    /// Like [`StrMatch`], this is a unary operator because we would like a way to share the
+    /// Like [`UnaryOp::StrMatch`], this is a unary operator because we would like a way to share the
     /// same "compiled regex" for many matching calls. This is done by returning functions
-    /// wrapping [`StrIsMatchCompiled`] and [`StrMatchCompiled`]
+    /// wrapping [`UnaryOp::StrIsMatchCompiled`] and [`UnaryOp::StrMatchCompiled`]
     StrIsMatch(),
     /// Match a regex on a string, and returns the captured groups together, the index of the
     /// match, etc.
     StrMatch(),
-    /// Version of `StrIsMatch` which remembers the compiled regex.
+    /// Version of [`UnaryOp::StrIsMatch`] which remembers the compiled regex.
     StrIsMatchCompiled(CompiledRegex),
-    /// Version of `StrMatch` which remembers the compiled regex.
+    /// Version of [`UnaryOp::StrMatch`] which remembers the compiled regex.
     StrMatchCompiled(CompiledRegex),
+    /// Force "full" evaluation of a term and return it.
+    ///
+    /// This was added in the context of [`BinaryOp::ArrayLazyAssume`],
+    /// and may not make much sense on its own.
+    ///
+    /// # `Force` vs. `DeepSeq`
+    ///
+    /// [`UnaryOp::Force`] updates the thunks containing arrays with a new version where the lazy contracts have all been applied,
+    /// whereas [`UnaryOp::DeepSeq`] evaluates the same expressions, but it never updates the thunk of an array with lazy contracts
+    /// with an array where those contracts have been applied. In a way, the result of lazy contract application in arrays is "lost"
+    /// in [`UnaryOp::DeepSeq`], while it's returned in [`UnaryOp::Force`].
+    ///
+    /// This means we can observe different results between `deep_seq x x` and `force x`, in some cases.
+    ///
+    /// It's also worth noting that [`UnaryOp::DeepSeq`] should be, in principle, more efficient that [`UnaryOp::Force`]
+    /// as it does less cloning.
+    Force(Option<crate::eval::callstack::StackElem>),
 }
 
 // See: https://github.com/rust-lang/regex/issues/178

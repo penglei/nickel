@@ -93,7 +93,7 @@ use crate::{
     environment::Environment as GenericEnvironment,
     error::EvalError,
     identifier::Ident,
-    match_sharedterm, mk_app,
+    match_sharedterm,
     term::{
         make as mk_term, ArrayAttrs, BinaryOp, BindingType, LetAttrs, MetaValue, PendingContract,
         RichTerm, SharedTerm, StrChunk, Term, UnaryOp,
@@ -216,25 +216,14 @@ where
 }
 
 fn eval_deep_closure<R>(
-    t0: RichTerm,
+    rt: RichTerm,
     global_env: &Environment,
     resolver: &mut R,
 ) -> Result<(RichTerm, Environment), EvalError>
 where
     R: ImportResolver,
 {
-    use crate::transform::fresh_var;
-
-    let var = fresh_var();
-    // Desugar to let x = term in %deep_seq% x x
-    let wrapper = mk_term::let_in(
-        var.clone(),
-        t0,
-        mk_app!(
-            mk_term::op1(UnaryOp::DeepSeq(None), Term::Var(var.clone())),
-            Term::Var(var)
-        ),
-    );
+    let wrapper = mk_term::op1(UnaryOp::Force(None), rt);
     eval_closure(Closure::atomic_closure(wrapper), global_env, resolver, true)
 }
 
@@ -425,7 +414,7 @@ where
                 // Special casing (hopefully temporary) due to the need for `DeepSeq` to produce
                 // acceptable error message for missing field definition occurring when sequencing
                 // a record. See the definition of `UnaryOp::DeepSeq`.
-                if let UnaryOp::DeepSeq(Some(stack_elem)) = op {
+                if let UnaryOp::DeepSeq(Some(stack_elem)) | UnaryOp::Force(Some(stack_elem)) = op {
                     call_stack.0.push(stack_elem.clone());
                 }
 
