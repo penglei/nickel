@@ -238,7 +238,7 @@ where
                         }, // be sure we have at least 1 `%` sign when an interpolation is present
                     )
                     .max()
-                    .unwrap_or(0);
+                    .unwrap_or(1);
                 let interp: String = std::iter::repeat("%").take(nb_perc).collect();
                 allocator
                     .intersperse(
