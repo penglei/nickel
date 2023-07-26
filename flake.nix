@@ -333,6 +333,7 @@
         shellHook = (pre-commit-builder { inherit rust; checkFormat = true; }).shellHook + ''
           echo "=== Nickel development shell ==="
           echo "Info: Git hooks can be installed using \`pre-commit install\`"
+          export PATH=$(pwd)/target/release:$(pwd)/target/debug:$PATH
         '';
 
         RUST_SRC_PATH = "${rust}/lib/rustlib/src/rust/library";

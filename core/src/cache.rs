@@ -18,6 +18,7 @@ use io::Read;
 use serde::Deserialize;
 use std::collections::hash_map;
 use std::collections::{HashMap, HashSet};
+use std::env;
 use std::ffi::{OsStr, OsString};
 use std::fs;
 use std::io;
@@ -83,6 +84,8 @@ pub struct Cache {
     #[cfg(debug_assertions)]
     /// Skip loading the stdlib, used for debugging purpose
     pub skip_stdlib: bool,
+
+    search_paths: Vec<&'static str>,
 }
 
 /// The error tolerance mode used by the parser. The NLS needs to try to
@@ -239,9 +242,15 @@ pub enum SourceState {
     /// The data is the timestamp of the new version of the file.
     Stale(SystemTime),
 }
-
 impl Cache {
     pub fn new(error_tolerance: ErrorTolerance) -> Self {
+        let runtime_path = env::var("NICKEL_PATH").unwrap_or_else(|_| String::new());
+        let search_paths: Vec<&'static str> = runtime_path
+            .split(':')
+            .filter(|s| !s.is_empty())
+            .map(|s| -> &'static str { Box::leak(s.to_owned().into_boxed_str()) })
+            .collect();
+
         Cache {
             files: Files::new(),
             file_ids: HashMap::new(),
@@ -254,6 +263,8 @@ impl Cache {
 
             #[cfg(debug_assertions)]
             skip_stdlib: false,
+
+            search_paths,
         }
     }
 
@@ -1212,6 +1223,32 @@ pub trait ImportResolver {
     fn get(&self, file_id: FileId) -> Option<RichTerm>;
     /// Return the (potentially normalized) file path corresponding to the ID of a resolved import.
     fn get_path(&self, file_id: FileId) -> &OsStr;
+
+    fn resolve_path(
+        &mut self,
+        pos: &TermPos,
+        parent: Option<PathBuf>,
+        path_buf: PathBuf,
+    ) -> Result<(ResolvedTerm, FileId), ImportError>;
+}
+
+fn find_file_in_dirs(filename: &OsStr, dirs: &[&str]) -> Option<PathBuf> {
+    for dir in dirs {
+        let filepath = Path::new(dir).join(filename);
+        match normalize_path(&filepath) {
+            Ok(path_buf) if path_buf.as_path().is_file() => return Some(path_buf),
+            _ => continue,
+        };
+    }
+    None
+}
+
+fn starts_with_slash_or_dot(os_str: &OsStr) -> bool {
+    if let Some(s) = os_str.to_str() {
+        s.starts_with('/') || s.starts_with('.')
+    } else {
+        false
+    }
 }
 
 impl ImportResolver for Cache {
@@ -1221,7 +1258,39 @@ impl ImportResolver for Cache {
         parent: Option<PathBuf>,
         pos: &TermPos,
     ) -> Result<(ResolvedTerm, FileId), ImportError> {
-        let path_buf = with_parent(path, parent.clone());
+        if starts_with_slash_or_dot(path) {
+            let path_buf = with_parent(path, parent.clone());
+            self.resolve_path(pos, parent, path_buf)
+        } else {
+            match find_file_in_dirs(path, &self.search_paths) {
+                Some(found) => self.resolve_path(pos, parent, found),
+                None => {
+                    let path_buf = with_parent(path, parent.clone());
+                    self.resolve_path(pos, parent, path_buf)
+                }
+            }
+        }
+    }
+
+    fn get(&self, file_id: FileId) -> Option<RichTerm> {
+        self.terms
+            .get(&file_id)
+            .map(|TermEntry { term, state, .. }| {
+                debug_assert!(*state >= EntryState::ImportsResolved);
+                term.clone()
+            })
+    }
+
+    fn get_path(&self, file_id: FileId) -> &OsStr {
+        self.files.name(file_id)
+    }
+
+    fn resolve_path(
+        &mut self,
+        pos: &TermPos,
+        parent: Option<PathBuf>,
+        path_buf: PathBuf,
+    ) -> Result<(ResolvedTerm, FileId), ImportError> {
         let format = InputFormat::from_path_buf(&path_buf).unwrap_or(InputFormat::Nickel);
         let id_op = self.get_or_add_file(&path_buf).map_err(|err| {
             ImportError::IOError(
@@ -1248,19 +1317,6 @@ impl ImportResolver for Cache {
             .map_err(|err| ImportError::ParseErrors(err, *pos))?;
 
         Ok((result, file_id))
-    }
-
-    fn get(&self, file_id: FileId) -> Option<RichTerm> {
-        self.terms
-            .get(&file_id)
-            .map(|TermEntry { term, state, .. }| {
-                debug_assert!(*state >= EntryState::ImportsResolved);
-                term.clone()
-            })
-    }
-
-    fn get_path(&self, file_id: FileId) -> &OsStr {
-        self.files.name(file_id)
     }
 }
 
@@ -1352,6 +1408,15 @@ pub mod resolvers {
         fn get_path(&self, _file_id: FileId) -> &OsStr {
             panic!("cache::resolvers: dummy resolver should not have been invoked");
         }
+
+        fn resolve_path(
+            &mut self,
+            _: &TermPos,
+            _: Option<PathBuf>,
+            _: PathBuf,
+        ) -> Result<(ResolvedTerm, FileId), ImportError> {
+            panic!("cache::resolvers: dummy resolver should not have been invoked");
+        }
     }
 
     /// Resolve imports from a mockup file database. Used to test imports without accessing the
@@ -1418,6 +1483,15 @@ pub mod resolvers {
 
         fn get_path(&self, file_id: FileId) -> &OsStr {
             self.files.name(file_id)
+        }
+
+        fn resolve_path(
+            &mut self,
+            _: &TermPos,
+            _: Option<PathBuf>,
+            _: PathBuf,
+        ) -> Result<(ResolvedTerm, FileId), ImportError> {
+            todo!()
         }
     }
 }
