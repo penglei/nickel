@@ -1,0 +1,121 @@
+= ktm
+
+`ktm` 是基于nickel语言实现的配置包管理工具。
+ktm起始于管理大量的kubernets配置，但不限于在kubernetes场景下使用。
+
+== 概念
+
+
+组件(component)是独立的配置单元，它通常由有多个由多个object组成。
+技术上，每个object由module表示，module支持多个配置片段合并成最终的object。
+
+.经验来源
+
+--
+每个组件可能读取三种配置信息：
+
+* k8s cluster
++
+集群信息，包含k8s集群本身的信息，组件信息(比如组件开关、组件配置)，argocd索引(labels)等信息
+
+* mode
++
+部署模式信息，包含各个组件的日志级别、隔离模式等
+
+* variant
+** 组件的镜像地址
+** 原始raw配置
+--
+
+ktm用package对component进行封装，实现复杂配置的分发和复用。
+
+
+一个完整的服务通常由多个组件(component)构成。
+package级别支持的功能：
+
+* 组件列表
+* 开关组件
+* 全局配置
+
+== 设计
+
+* 组件API
+
+. 定义基底组件
++
+--
+在组件的特化过程中，组件以一个基础版本为起点，`define` 即定义了一个组件的起始版本(称作基底组件)
+
+  basic = define "basic" {x = xmodule, y = ymodule}
+--
+
+. 扩展组件
++
+--
+基底组件没有足够的配置信息，常常不能直接使用，需要增加更多的特化信息才能得到最终可使用的组件配置：
+
+  extend1 = derive "extend1" basic {x = xmodule_piece, y = ymodule_piece}
+  extend2 = derive "extend2" basic {z = zmodule_piece}
+--
+
+. 导出组件
++
+--
+将组件导出为原始格式(yaml)。
+一个组件通常包含多个module，导出一个组件会得到对象数组的原始格式。
+原始对象在提交给服务端如apiserver的时候，可能对提交的对象有顺序要求，
+因此，导出接口需要提供一个可导出的对象有序列表名。
+
+  result = export extend1 ["x", "y", "z"]
+--
+
+
+* 底层Module API
+
+. 定义单个module
++
+--
+一个module由对象类型、原始值、对象扩展(mixins)、配置片段组成
+
+  x = compose [{object | Object, raw | Any, mixins | Array Mixin, fragments | Array any}]
+
+--
+
+. 导出单个module
++
+--
+  result = build x
+--
+
+=== 命令行
+
+CAUTION: 暂未实现
+
+//----
+//kp
+//  --schema apps/v1:deployment
+//  --raw deploy.yaml
+//  --fragments fragments.ncl
+//  --fragment-inline '{spec.template.spec.namedContainers.app.image = "xxx"}'
+//  --mixins WorkloadMxin, ??
+//----
+
+khaos bundle
+
+----
+tkb export $component
+tkb export $inst $var
+
+tkb render $inst $var
+tkb render $component 
+----
+
+== misc
+
+
+playground:: 用于实验各种特性
+
+例:
+
+  nickel export -f kp/packages/demo/deployment.ncl --format yaml | yq
+
