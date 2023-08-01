@@ -7,8 +7,12 @@ use crate::term::RichTerm;
 ///
 /// Using a dedicated enum tpe, handling arrays, etc. for two modules can seem a bit overkill, but
 /// we'll probably extend `StdlibModule` when we'll split the `std` module into several files.
-pub fn modules() -> [StdlibModule; 2] {
-    [StdlibModule::Std, StdlibModule::Internals]
+pub fn modules() -> [StdlibModule; 3] {
+    [
+        StdlibModule::Std,
+        StdlibModule::Internals,
+        StdlibModule::Mod,
+    ]
 }
 
 /// Represents a particular Nickel standard library module.
@@ -16,6 +20,7 @@ pub fn modules() -> [StdlibModule; 2] {
 pub enum StdlibModule {
     Std,
     Internals,
+    Mod,
 }
 
 impl StdlibModule {
@@ -23,6 +28,7 @@ impl StdlibModule {
         match self {
             StdlibModule::Std => "<stdlib/std.ncl>",
             StdlibModule::Internals => "<stdlib/internals.ncl>",
+            StdlibModule::Mod => "<kp/module.ncl>",
         }
     }
 
@@ -34,6 +40,7 @@ impl StdlibModule {
         match self {
             StdlibModule::Std => "std",
             StdlibModule::Internals => "internals",
+            StdlibModule::Mod => "module",
         }
     }
 
@@ -41,6 +48,12 @@ impl StdlibModule {
         match self {
             StdlibModule::Std => include_str!("../stdlib/std.ncl"),
             StdlibModule::Internals => include_str!("../stdlib/internals.ncl"),
+
+            // #[cfg(debug_assertions)]
+            // StdlibModule::Mod => include_str!("../../kp/module_debug.ncl"),
+
+            // #[cfg(not(debug_assertions))]
+            StdlibModule::Mod => include_str!("../../module/module.ncl"),
         }
     }
 }
