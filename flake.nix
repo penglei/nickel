@@ -251,7 +251,7 @@
                   # them explicitly. Also, `libcxx` expects to be linked with
                   # `libcxxabi` at the end, and we need to make the rust linker
                   # aware of that.
-                  RUSTFLAGS = "-L${pkgs.pkgsMusl.llvmPackages.libcxx}/lib -L${pkgs.pkgsMusl.llvmPackages.libcxxabi}/lib -lstatic=c++abi";
+                  RUSTFLAGS = "-L${pkgs.pkgsMusl.llvmPackages.libcxx}/lib -L${pkgs.pkgsMusl.llvmPackages.libcxxabi}/lib -lstatic=c++abi --remap-path-prefix=$NIX_BUILD_TOP=/";
                   # Explain to `cc-rs` that it should use the `libcxx` C++
                   # standard library, and a static version of it, when building
                   # C++ libraries. The `cc-rs` crate is typically used in
