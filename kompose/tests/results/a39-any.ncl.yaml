@@ -1,0 +1,3 @@
+- any key is allowed: true
+  foo:
+    bar: 1

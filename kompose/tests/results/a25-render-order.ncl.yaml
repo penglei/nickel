@@ -1,0 +1,17 @@
+- apiVersion: apps/v1
+  kind: deployment
+  metadata:
+    name: deploy-b
+  spec:
+    image: yyy
+    replica: 1
+- apiVersion: apps/v1
+  kind: deployment
+  metadata:
+    name: monitor-deploy
+  spec:
+    image: x-fragm1
+    replica: 1000
+- data: 1
+  metadata:
+    name: monitor-cfg

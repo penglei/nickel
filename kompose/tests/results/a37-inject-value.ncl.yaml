@@ -1,0 +1,7 @@
+- apiVersion: apps/v1
+  kind: deployment
+  metadata:
+    name: deploy-demo
+  spec:
+    image: monitor:latest-zzz
+    replica: 1

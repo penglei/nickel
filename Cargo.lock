@@ -1271,6 +1271,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1283,6 +1292,30 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "406cda4b368d531c842222cf9d2600a9a4acce8d29423695379c6868a143a9ee"
 dependencies = [
  "wasm-bindgen",
+]
+
+[[package]]
+name = "kompose-cli"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "clap 4.5.2",
+ "clap_complete",
+ "directories",
+ "git-version",
+ "indoc 2.0.4",
+ "insta",
+ "itertools 0.13.0",
+ "lazy_static",
+ "metrics",
+ "metrics-util",
+ "nickel-lang-core",
+ "nickel-lang-utils",
+ "regex",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "test-generator",
 ]
 
 [[package]]

@@ -156,6 +156,7 @@
             excludes = [
               "notes/(.+)\\.md$"
               "^RELEASES\\.md$"
+              "develop/(.+)\\.md$"
             ];
           };
 
@@ -163,7 +164,7 @@
           # is evolving quickly and we prefer to have the latest version.
           # This might change once the Nickel support is stabilized.
           topiary-latest = topiary.lib.${system}.pre-commit-hook // {
-            enable = true;
+            enable = false;
             # Some tests are currently failing the idempotency check, and
             # formatting is less important there. We at least want the examples
             # as well as the stdlib to be properly formatted.
@@ -387,6 +388,30 @@
               meta.mainProgram = "nls";
             };
           });
+
+          kompose-cli = buildPackage {
+            cargoPackage = "kompose-cli";
+            pnameSuffix = "-cli";
+            extraArgs.meta.mainProgram = "kp";
+          };
+          kompose-static =
+            if pkgs.stdenv.hostPlatform.isMacOS
+            then kompose-cli
+            else
+              fixupGitRevision
+                (buildPackage {
+                  cargoPackage = "kompose-cli";
+                  pnameSuffix = "-cli";
+                  extraArgs = {
+                    inherit env;
+                    CARGO_BUILD_TARGET = pkgs.rust.toRustTarget pkgs.pkgsMusl.stdenv.hostPlatform;
+                    RUSTFLAGS = "-L${pkgs.pkgsMusl.llvmPackages.libcxx}/lib -lstatic=c++abi -C link-arg=-lc";
+                    CXXSTDLIB = "static=c++";
+                    stdenv = pkgs.pkgsMusl.libcxxStdenv;
+                    doCheck = false;
+                    meta.mainProgram = "kp";
+                  };
+                });
 
           # Static building isn't really possible on MacOS because the system call ABIs aren't stable.
           nickel-static =
@@ -657,6 +682,7 @@
         inherit (mkCraneArtifacts { })
           nickel-lang-core
           nickel-lang-cli
+          kompose-cli
           benchmarks
           nickel-lang-lsp
           cargoArtifacts;
@@ -672,7 +698,7 @@
         stdlibMarkdown = stdlibDoc "markdown";
         stdlibJson = stdlibDoc "json";
       } // pkgs.lib.optionalAttrs (!pkgs.stdenv.hostPlatform.isDarwin) {
-        inherit (mkCraneArtifacts { }) nickel-static;
+        inherit (mkCraneArtifacts { }) nickel-static kompose-static;
         # Use the statically linked binary for the docker image if we're not on MacOS.
         dockerImage = buildDocker packages.nickel-static;
       };

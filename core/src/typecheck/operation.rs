@@ -395,11 +395,11 @@ pub fn get_bop_type(
             mk_uniftype::str(),
             mk_uniftype::str(),
         ),
-        // forall a. <Json, Yaml, Toml> -> a -> Str
+        // forall a. <Json, MiJson, Yaml, Toml> -> a -> Str
         BinaryOp::Serialize => {
             let ty_input = state.table.fresh_type_uvar(var_level);
             (
-                mk_uty_enum!("Json", "Yaml", "Toml"),
+                mk_uty_enum!("Json", "MiJson", "Yaml", "Toml"),
                 ty_input,
                 mk_uniftype::str(),
             )

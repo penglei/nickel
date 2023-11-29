@@ -3357,7 +3357,7 @@
     = fun type s => %hash% type s,
 
   serialize
-    : [| 'Json, 'Toml, 'Yaml |] -> Dyn -> String
+    : [| 'Json, 'MiJson, 'Toml, 'Yaml |] -> Dyn -> String
     | doc m%"
       Serializes a value into the desired representation.
 
@@ -3449,4 +3449,57 @@
       ```
     "%
     = fun msg => null | FailWith msg,
+
+  when
+    : Bool -> Dyn -> Dyn
+    | doc m%" return empty record if `cond` is false "%
+    = fun cond v => if cond then v else {},
+  only
+    : Bool -> Dyn -> Dyn
+    | doc m%" return null if `cond` is false"%
+    = fun cond v => if cond then v else null,
+  case
+    : Bool -> Dyn -> Dyn -> Dyn
+    | doc m%" return the default_value if `cond` is true"%
+    = fun cond default_value v => if cond then default_value else v,
+  get_or
+    | doc "get deep field in optional record"
+    = fun field default_value r =>
+      let rec get_op = fun key_path r =>
+        if key_path == [] then
+          r
+        else
+          let k = std.array.first key_path in
+
+          if (%typeof% r == 'Record) && (%record/has_field% k r && %record/field_is_defined% k r) then
+            get_op (std.array.split_at 1 key_path).right r."%{k}"
+          else
+            default_value
+      in
+      let key_path =
+        if std.is_string field then
+          std.string.split "." field
+        else
+          field
+      in
+      get_op key_path r,
+  get
+    | doc "get deep field, return null if it impossible"
+    = fun field r => get_or field null r,
+  Any = {
+    Identifier = "Any",
+    Schema | { .. } | rec default = {},
+  },
+  pairs
+    | doc m%"convert [["x", x], ["y", y]] to  {"x" = x, "y" = y}"%
+    = fun ps =>
+      std.array.fold_left
+        (
+          fun exports pair =>
+            let name = array.first pair in
+            let value = array.last pair in
+            exports |> record.update name value
+        )
+        {}
+        ps
 }
