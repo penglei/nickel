@@ -2222,7 +2222,7 @@ impl<R: ImportResolver, C: Cache> VirtualMachine<R, C> {
                 let mk_err_fst = |t1| {
                     Err(mk_type_error!(
                         "serialize",
-                        "[| 'Json, 'Yaml, 'Toml |]",
+                        "[| 'Json, 'MiJson, 'Yaml, 'Toml |]",
                         1,
                         t1,
                         pos1
@@ -2244,6 +2244,7 @@ impl<R: ImportResolver, C: Cache> VirtualMachine<R, C> {
 
                     let format = match id.to_string().as_str() {
                         "Json" => ExportFormat::Json,
+                        "MiJson" => ExportFormat::MiJson,
                         "Yaml" => ExportFormat::Yaml,
                         "Toml" => ExportFormat::Toml,
                         _ => return mk_err_fst(t1),

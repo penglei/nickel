@@ -7,6 +7,7 @@ members = [
     "utils",
     "wasm-repl",
     "pyckel",
+    "kompose",
 ]
 resolver = "2"
 

@@ -32,6 +32,7 @@ pub enum ExportFormat {
     Raw,
     #[default]
     Json,
+    MiJson,
     Yaml,
     Toml,
 }
@@ -41,6 +42,7 @@ impl fmt::Display for ExportFormat {
         match self {
             Self::Raw => write!(f, "raw"),
             Self::Json => write!(f, "json"),
+            Self::MiJson => write!(f, "mi-json"),
             Self::Yaml => write!(f, "yaml"),
             Self::Toml => write!(f, "toml"),
         }
@@ -374,6 +376,8 @@ where
 {
     match format {
         ExportFormat::Json => serde_json::to_writer_pretty(writer, &rt)
+            .map_err(|err| ExportErrorData::Other(err.to_string())),
+        ExportFormat::MiJson => serde_json::to_writer(writer, &rt)
             .map_err(|err| ExportErrorData::Other(err.to_string())),
         ExportFormat::Yaml => serde_yaml::to_writer(writer, &rt)
             .map_err(|err| ExportErrorData::Other(err.to_string())),

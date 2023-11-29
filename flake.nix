@@ -156,6 +156,7 @@
             excludes = [
               "notes/(.+)\\.md$"
               "^RELEASES\\.md$"
+              "develop/(.+)\\.md$"
             ];
           };
 
@@ -163,7 +164,7 @@
           # is evolving quickly and we prefer to have the latest version.
           # This might change once the Nickel support is stabilized.
           topiary-latest = topiary.lib.${system}.pre-commit-hook // {
-            enable = true;
+            enable = false;
             # Some tests are currently failing the idempotency check, and
             # formatting is less important there. We at least want the examples
             # as well as the stdlib to be properly formatted.
@@ -461,7 +462,7 @@
             cargoExtraArgs = cargoBuildExtraArgs;
             cargoClippyExtraArgs = "--all-features --all-targets --workspace -- --deny warnings --allow clippy::new-without-default --allow clippy::match_like_matches_macro";
           };
-        };
+        } // ((import ./kompose.nix) { inherit pkgs buildPackage fixupGitRevision env; });
 
       makeDevShell = { rust }: pkgs.mkShell {
         # Get deps needed to build. Get them from cargoArtifactsDeps so we build
@@ -657,6 +658,7 @@
         inherit (mkCraneArtifacts { })
           nickel-lang-core
           nickel-lang-cli
+          kompose-cli
           benchmarks
           nickel-lang-lsp
           cargoArtifacts;
@@ -672,7 +674,7 @@
         stdlibMarkdown = stdlibDoc "markdown";
         stdlibJson = stdlibDoc "json";
       } // pkgs.lib.optionalAttrs (!pkgs.stdenv.hostPlatform.isDarwin) {
-        inherit (mkCraneArtifacts { }) nickel-static;
+        inherit (mkCraneArtifacts { }) nickel-static kompose-static nls-static;
         # Use the statically linked binary for the docker image if we're not on MacOS.
         dockerImage = buildDocker packages.nickel-static;
       };

@@ -1,0 +1,13 @@
+####type0####
+type0:
+  containers:
+  - name: app
+    image: foo
+
+
+####type1####
+type1:
+  spec:
+    containers:
+    - name: app
+      image: foo

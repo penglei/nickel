@@ -1,0 +1,13 @@
+- data:
+    mode: dev
+    replica: 2
+    x: 1111
+  metadata:
+    name: monitor-cfg1
+- apiVersion: apps/v1
+  kind: deployment
+  metadata:
+    name: deploy-demo
+  spec:
+    image: x
+    replica: 222
