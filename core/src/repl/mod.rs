@@ -212,6 +212,7 @@ impl<EC: EvalCache> ReplImpl<EC> {
         }
     }
 
+    #[allow(dead_code)]
     fn report(&mut self, err: impl IntoDiagnostics<FileId>, color_opt: ColorOpt) {
         report::report(self.cache_mut(), err, ErrorFormat::Text, color_opt);
     }

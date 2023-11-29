@@ -2548,7 +2548,8 @@ impl<R: ImportResolver, C: Cache> VirtualMachine<R, C> {
                 }
             }
             BinaryOp::Serialize => {
-                let mk_err_fst = |t1| mk_type_error!("[| 'Json, 'Yaml, 'Toml |]", 1, t1, pos1);
+                let mk_err_fst =
+                    |t1| mk_type_error!("[| 'MiJson, 'Json, 'Yaml, 'Toml |]", 1, t1, pos1);
 
                 if let Term::Enum(ref id) = t1.as_ref() {
                     // Serialization needs all variables term to be fully substituted
@@ -2565,6 +2566,7 @@ impl<R: ImportResolver, C: Cache> VirtualMachine<R, C> {
 
                     let format = match id.to_string().as_str() {
                         "Json" => ExportFormat::Json,
+                        "MiJson" => ExportFormat::MiJson,
                         "Yaml" => ExportFormat::Yaml,
                         "Toml" => ExportFormat::Toml,
                         _ => return mk_err_fst(t1),
