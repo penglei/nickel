@@ -1,0 +1,7 @@
+- apiVersion: apps/v1
+  kind: deployment
+  metadata:
+    name: sts-a
+  spec:
+    image: SECOND
+    replica: 0

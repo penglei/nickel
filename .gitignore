@@ -30,3 +30,5 @@ venv/
 
 # helix configuration
 .helix/
+
+/dist

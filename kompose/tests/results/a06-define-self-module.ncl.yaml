@@ -1,0 +1,7 @@
+- apiVersion: apps/v1
+  kind: deployment
+  metadata:
+    name: deploy-a
+  spec:
+    image: deploy:latest
+    replica: 1

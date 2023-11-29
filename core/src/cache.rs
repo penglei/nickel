@@ -305,6 +305,7 @@ impl From<SourcePath> for OsString {
             SourcePath::Path(p) | SourcePath::Snippet(p) => p.into(),
             SourcePath::Std(StdlibModule::Std) => "<stdlib/std.ncl>".into(),
             SourcePath::Std(StdlibModule::Internals) => "<stdlib/internals.ncl>".into(),
+            SourcePath::Std(StdlibModule::Mod) => "<kompose/module.ncl>".into(),
             SourcePath::Query => "<query>".into(),
             SourcePath::ReplInput(idx) => format!("<repl-input-{idx}>").into(),
             SourcePath::ReplTypecheck => "<repl-typecheck>".into(),
