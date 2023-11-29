@@ -1,0 +1,10 @@
+- data: 2
+  metadata:
+    name: monitor-cfg
+- apiVersion: apps/v1
+  kind: deployment
+  metadata:
+    name: deploy-demo
+  spec:
+    image: xxx:v1-image-by-value
+    replica: 1

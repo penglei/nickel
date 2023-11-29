@@ -1,0 +1,17 @@
+- apiVersion: apps/v1
+  kind: deployment
+  metadata:
+    name: monitor-deploy
+  spec:
+    image: monitor:latest
+    replica: 1
+- data: 1
+  metadata:
+    name: monitor-cfg
+- apiVersion: apps/v1
+  kind: deployment
+  metadata:
+    name: apiserver-deploy
+  spec:
+    image: apiserver:latest
+    replica: 1
