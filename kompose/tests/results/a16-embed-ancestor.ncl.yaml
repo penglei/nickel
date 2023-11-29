@@ -1,0 +1,14 @@
+- apiVersion: infra.tce.io/v1
+  kind: Component
+  metadata:
+    name: apiserver-component
+  spec:
+    workload:
+      deployment:
+        apiVersion: apps/v1
+        kind: deployment
+        metadata:
+          name: nginx
+        spec:
+          image: nginx:1.25
+          replica: 1

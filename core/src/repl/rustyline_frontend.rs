@@ -52,7 +52,7 @@ pub fn repl(histfile: PathBuf, color_opt: ColorOpt) -> Result<(), InitError> {
     editor.set_helper(Some(validator));
 
     let result = loop {
-        let line = editor.readline("nickel> ");
+        let line = editor.readline("❯❯ ");
         let mut stdout = std::io::stdout();
 
         match line {
