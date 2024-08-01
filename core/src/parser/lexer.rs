@@ -333,6 +333,10 @@ pub enum NormalToken<'input> {
     StringSplit,
     #[token("%string/trim%")]
     StringTrim,
+    #[token("%base64/encode%")]
+    Base64Encode,
+    #[token("%base64/decode%")]
+    Base64Decode,
     #[token("%string/chars%")]
     StringChars,
     #[token("%string/uppercase%")]

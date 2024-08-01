@@ -1355,6 +1355,11 @@ pub enum UnaryOp {
     /// Remove heading and trailing spaces from a string.
     StringTrim,
 
+    ///encode string to base64 string.
+    Base64Encode,
+    ///decode string from base64 string.
+    Base64Decode,
+
     /// Return the array of characters of a string.
     StringChars,
 
@@ -1572,6 +1577,8 @@ impl fmt::Display for UnaryOp {
             RecordFields(RecordOpKind::ConsiderAllFields) => write!(f, "record/fields_with_opts"),
             RecordValues => write!(f, "record/values"),
             StringTrim => write!(f, "string/trim"),
+            Base64Encode => write!(f, "base64/encode"),
+            Base64Decode => write!(f, "base64/decode"),
             StringChars => write!(f, "string/chars"),
             StringUppercase => write!(f, "string/uppercase"),
             StringLowercase => write!(f, "string/lowercase"),

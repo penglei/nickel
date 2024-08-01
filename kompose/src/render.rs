@@ -56,8 +56,14 @@ struct ValueOptions {
     ///
     ///  value can also be loaded from file:
     ///
-    ///      `-f k.apiserver '(import "./image.json")'`
+    ///      `-i artifact=@./artifact.json`
     ///
+    ///       translate to:
+    ///       {input = {artifact = (import "./artifact.json")}
+    ///
+    ///  contruct value from nickel expression directly:
+    ///
+    ///     `-i artifact='(import "./artifact.json")'`
     ///
     #[arg(long, short = 'i', num_args(1..=2), value_names = ["Object path", "EXPRESSION or ASSIGNMENT"])]
     inputs: Vec<String>,
