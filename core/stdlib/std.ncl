@@ -3917,13 +3917,13 @@
   when
     : Bool -> Dyn -> Dyn #See rfc typechecking
     | doc m%" return empty record if `cond` is false "%
-    = fun cond v => if cond then v else ({}|Dyn),
+    = fun cond v => if cond then v else ({} | Dyn),
   only
     : Bool -> Dyn -> Dyn #See rfc typechecking
     | doc m%" return null if `cond` is false"%
-    = fun cond v => if cond then v else (null| Dyn),
+    = fun cond v => if cond then v else (null | Dyn),
   case
-    #: Bool -> Dyn -> Dyn -> Dyn
+  #: Bool -> Dyn -> Dyn -> Dyn
     | Bool -> Dyn -> Dyn -> Dyn
     | doc m%" return the default_value if `cond` is true"%
     = fun cond default_value v => if cond then default_value else v,
@@ -3966,5 +3966,9 @@
             exports |> record.update name value
         )
         {}
-        ps
+        ps,
+  base64 = {
+    encode = fun s => %base64/encode% s,
+    decode = fun s => %base64/decode% s,
+  }
 }

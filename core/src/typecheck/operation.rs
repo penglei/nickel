@@ -152,6 +152,8 @@ pub fn get_uop_type(
         }
         // Str -> Str
         UnaryOp::StringTrim => (mk_uniftype::str(), mk_uniftype::str()),
+        UnaryOp::Base64Encode => (mk_uniftype::str(), mk_uniftype::str()),
+        UnaryOp::Base64Decode => (mk_uniftype::str(), mk_uniftype::str()),
         // Str -> Array Str
         UnaryOp::StringChars => (mk_uniftype::str(), mk_uniftype::array(mk_uniftype::str())),
         // Str -> Str

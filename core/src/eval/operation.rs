@@ -12,6 +12,7 @@ use super::{
     stack::StrAccData,
     subst, Cache, Closure, Environment, ImportResolver, VirtualMachine,
 };
+use base64::prelude::*;
 
 #[cfg(feature = "nix-experimental")]
 use crate::nix_ffi;
@@ -804,6 +805,31 @@ impl<R: ImportResolver, C: Cache> VirtualMachine<R, C> {
                 if let Term::Str(s) = &*t {
                     Ok(Closure::atomic_closure(RichTerm::new(
                         Term::Str(s.trim().into()),
+                        pos_op_inh,
+                    )))
+                } else {
+                    mk_type_error!("String")
+                }
+            }
+            UnaryOp::Base64Encode => {
+                if let Term::Str(s) = &*t {
+                    let s1 = s.as_str();
+                    Ok(Closure::atomic_closure(RichTerm::new(
+                        Term::Str(BASE64_STANDARD.encode(&s1).into()),
+                        pos_op_inh,
+                    )))
+                } else {
+                    mk_type_error!("String")
+                }
+            }
+            UnaryOp::Base64Decode => {
+                if let Term::Str(s) = &*t {
+                    let s1 = s.as_str();
+                    let ds = String::from_utf8(BASE64_STANDARD.decode(&s1).ok().unwrap())
+                        .ok()
+                        .unwrap();
+                    Ok(Closure::atomic_closure(RichTerm::new(
+                        Term::Str(ds.into()),
                         pos_op_inh,
                     )))
                 } else {
