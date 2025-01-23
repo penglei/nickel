@@ -87,7 +87,7 @@ struct ValueOptions {
 }
 
 pub trait ValueCombiner {
-    fn combine<'a>(&'a self, partials: &'a mut Vec<String>) -> &mut Vec<String>;
+    fn combine<'a>(&'a self, partials: &'a mut Vec<String>) -> &'a mut Vec<String>;
 }
 
 #[derive(clap::Parser, Debug)]
