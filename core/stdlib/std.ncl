@@ -4319,7 +4319,10 @@
         else
           field
       in
-      get_op key_path r,
+      if key_path == [] then
+        default_value
+      else
+        get_op key_path r,
   get
     | doc "get deep field, return null if it impossible"
     = fun field r => get_or field null r,
