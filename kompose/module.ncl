@@ -316,7 +316,13 @@ let transform = fun ergonomic_obj facets vars deps =>
   in
 
   let merged_ergonomic_obj = std.record.merge_all (typed_facets.merges @ [{ fragment = ergonomic_obj }]) in
+
+  #如果多个override修改同一个字段，后面的会覆盖前面的。
+  #但使用者可能期望的是"合并"行为: 高优先级的function fragement读取到低优先级的function fragment生成的结果，然后再覆盖。
+  #所以从根本上我们需要fragment排序的能力，这样才能正确实现数组的合并，这种排序即要求每个fragment都有唯一的优先级设置。
+  #但现在优先级是nickel语言为每个字段配置的，这在根本上与我们的设计目标是冲突的。
   let overrides = std.array.map (fun facet => facet |> rupdate "fragment" (facet.fragment (merged_ergonomic_obj.fragment))) typed_facets.overrides in
+
   std.record.merge_all ([merged_ergonomic_obj] @ overrides @ [{ demands = deps }])
 in
 
